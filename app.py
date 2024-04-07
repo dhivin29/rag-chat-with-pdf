@@ -91,12 +91,12 @@ async def on_chat_start():
 @cl.on_message
 async def main(message: cl.Message):
         
-     # Retrieve the chain from user session
+    # Retrieve the chain from user session
     chain = cl.user_session.get("chain") 
-    #call backs happens asynchronously/parallel 
+    # Call backs happen asynchronously/parallel 
     cb = cl.AsyncLangchainCallbackHandler()
     
-    # call the chain with user's message content
+    # Call the chain with the user's message content
     res = await chain.ainvoke(message.content, callbacks=[cb])
     answer = res["answer"]
     source_documents = res["source_documents"] 
@@ -111,12 +111,18 @@ async def main(message: cl.Message):
             text_elements.append(
                 cl.Text(content=source_doc.page_content, name=source_name)
             )
+            # Generate HTML to display the content
+            html_content = f"<h3>Source {source_idx + 1}</h3>"
+            html_content += f"<p>{source_doc.page_content}</p>"
+            text_elements.append(html_content)
+        
         source_names = [text_el.name for text_el in text_elements]
         
-         # Add source references to the answer
+        # Add source references to the answer
         if source_names:
             answer += f"\nSources: {', '.join(source_names)}"
         else:
             answer += "\nNo sources found"
-    #return results
+    
+    # Return results
     await cl.Message(content=answer, elements=text_elements).send()
